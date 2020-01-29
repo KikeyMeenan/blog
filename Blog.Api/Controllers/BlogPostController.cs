@@ -79,7 +79,7 @@ namespace Blog.Api.Controllers
             _context.BlogPosts.Add(post);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetPost", new { id = post.Id }, post);
+            return CreatedAtAction("GetBlogPost", new { id = post.Id }, post);
         }
 
         // DELETE: api/Post/5

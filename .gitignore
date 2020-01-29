@@ -2,3 +2,5 @@
 *.sql
 *.sqlite
 *.lock
+**/obj
+**/bin
