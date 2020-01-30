@@ -12,23 +12,23 @@ namespace Blog.Api.Controllers
     [ApiController]
     public class BlogPostController : ControllerBase
     {
-        private readonly Context _context;
+        private readonly IGenericRepository<BlogPost> _repo;
 
-        public BlogPostController(Context context)
+        public BlogPostController(IGenericRepository<BlogPost> repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BlogPost>>> GetBlogPosts()
         {
-            return await _context.BlogPosts.ToListAsync();
+            return Ok(await _repo.GetAll().ToListAsync());
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<BlogPost>> GetBlogPost(Guid id)
         {
-            var post = await _context.BlogPosts.FindAsync(id);
+            var post = await _repo.GetById(id);
 
             if (post == null)
             {
@@ -49,15 +49,13 @@ namespace Blog.Api.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(post).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _repo.Update(id, post);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!BlogPostExists(id))
+                if (!await BlogPostExists(id))
                 {
                     return NotFound();
                 }
@@ -76,8 +74,7 @@ namespace Blog.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<BlogPost>> PostBlogPost(BlogPost post)
         {
-            _context.BlogPosts.Add(post);
-            await _context.SaveChangesAsync();
+            await _repo.Create(post);
 
             return CreatedAtAction("GetBlogPost", new { id = post.Id }, post);
         }
@@ -86,21 +83,22 @@ namespace Blog.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<BlogPost>> DeleteBlogPost(Guid id)
         {
-            var post = await _context.BlogPosts.FindAsync(id);
-            if (post == null)
+            try
             {
+                await _repo.Delete(id);
+            }
+            catch (NullReferenceException notFoudException)
+            {
+
                 return NotFound();
             }
-
-            _context.BlogPosts.Remove(post);
-            await _context.SaveChangesAsync();
-
-            return post;
+            
+            return Ok();
         }
 
-        private bool BlogPostExists(Guid id)
+        private async Task<bool> BlogPostExists(Guid id)
         {
-            return _context.BlogPosts.Any(e => e.Id == id);
+            return await _repo.GetById(id) != null;
         }
     }
 }

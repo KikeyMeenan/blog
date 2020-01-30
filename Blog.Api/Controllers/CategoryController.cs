@@ -12,35 +12,33 @@ namespace Blog.Api.Controllers
     [ApiController]
     public class CategoryController : ControllerBase
     {
-        private readonly Context _context;
+        private readonly IGenericRepository<Category> _repo;
 
-        public CategoryController(Context context)
+        public CategoryController(IGenericRepository<Category> repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
-        // GET: api/Category
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
         {
-            return await _context.Categories.ToListAsync();
+            return Ok(await _repo.GetAll().ToListAsync());
         }
 
-        // GET: api/Category/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategory(Guid id)
         {
-            var category = await _context.Categories.FindAsync(id);
+            var post = await _repo.GetById(id);
 
-            if (category == null)
+            if (post == null)
             {
                 return NotFound();
             }
 
-            return category;
+            return post;
         }
 
-        // PUT: api/Category/5
+        // PUT: api/Post/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPut("{id}")]
@@ -51,15 +49,13 @@ namespace Blog.Api.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(category).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _repo.Update(id, category);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CategoryExists(id))
+                if (!await CategoryExists(id))
                 {
                     return NotFound();
                 }
@@ -72,37 +68,37 @@ namespace Blog.Api.Controllers
             return NoContent();
         }
 
-        // POST: api/Category
+        // POST: api/Post
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
         public async Task<ActionResult<Category>> PostCategory(Category category)
         {
-            _context.Categories.Add(category);
-            await _context.SaveChangesAsync();
+            await _repo.Create(category);
 
             return CreatedAtAction("GetCategory", new { id = category.Id }, category);
         }
 
-        // DELETE: api/Category/5
+        // DELETE: api/Post/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<Category>> DeleteCategory(Guid id)
         {
-            var category = await _context.Categories.FindAsync(id);
-            if (category == null)
+            try
             {
+                await _repo.Delete(id);
+            }
+            catch (NullReferenceException)
+            {
+
                 return NotFound();
             }
 
-            _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
-
-            return category;
+            return Ok();
         }
 
-        private bool CategoryExists(Guid id)
+        private async Task<bool> CategoryExists(Guid id)
         {
-            return _context.Categories.Any(e => e.Id == id);
+            return await _repo.GetById(id) != null;
         }
     }
 }

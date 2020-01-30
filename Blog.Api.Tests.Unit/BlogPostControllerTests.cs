@@ -36,9 +36,9 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new BlogPostController(context);
+                var service = new BlogPostController(new GenericRepository<BlogPost>(context));
                 var result = await service.GetBlogPosts();
-                Assert.AreEqual(blogPosts.Count, (result.Value as List<BlogPost>).Count);
+                Assert.AreEqual(blogPosts.Count, ((result.Result as OkObjectResult).Value as List<BlogPost>).Count);
             }
         }
 
@@ -57,7 +57,7 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new BlogPostController(context);
+                var service = new BlogPostController(new GenericRepository<BlogPost>(context));
                 var result = await service.GetBlogPost(blogPosts[0].Id);
                 Assert.AreEqual(blogPosts[0].Id, (result.Value as BlogPost).Id);
             }
@@ -78,7 +78,7 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new BlogPostController(context);
+                var service = new BlogPostController(new GenericRepository<BlogPost>(context));
                 var result = await service.GetBlogPost(new Guid());
                 Assert.AreEqual(404, ((result as ActionResult<BlogPost>).Result as StatusCodeResult).StatusCode);
             }
@@ -99,7 +99,7 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new BlogPostController(context);
+                var service = new BlogPostController(new GenericRepository<BlogPost>(context));
                 var result = await service.PostBlogPost(newBlogPost);
 
                 Assert.IsNotNull(context.BlogPosts.Find(newBlogPost.Id));
@@ -130,7 +130,7 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new BlogPostController(context);
+                var service = new BlogPostController(new GenericRepository<BlogPost>(context));
                 var result = await service.PutBlogPost(new Guid(), blogPosts[0]);
                 Assert.AreEqual(400, (result as BadRequestResult).StatusCode);
             }
@@ -158,7 +158,7 @@ namespace Blog.Api.Tests.Unit
                     Content = "updated content",
                 };
 
-                var service = new BlogPostController(context);
+                var service = new BlogPostController(new GenericRepository<BlogPost>(context));
                 var result = await service.PutBlogPost(updatedBlogPost.Id, updatedBlogPost);
 
                 Assert.AreEqual(204, (result as StatusCodeResult).StatusCode);
@@ -181,7 +181,7 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new BlogPostController(context);
+                var service = new BlogPostController(new GenericRepository<BlogPost>(context));
                 var result = await service.DeleteBlogPost(new Guid());
                 Assert.AreEqual(404, ((result as ActionResult<BlogPost>).Result as StatusCodeResult).StatusCode);
             }
@@ -202,10 +202,9 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new BlogPostController(context);
+                var service = new BlogPostController(new GenericRepository<BlogPost>(context));
                 var result = await service.DeleteBlogPost(blogPosts[0].Id);
                 Assert.AreEqual(1, await context.BlogPosts.CountAsync());
-                Assert.AreEqual(blogPosts[0].Id, (result as ActionResult<BlogPost>).Value.Id);
             }
         }
     }

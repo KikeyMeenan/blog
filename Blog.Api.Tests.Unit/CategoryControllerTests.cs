@@ -36,9 +36,9 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new CategoryController(context);
+                var service = new CategoryController(new GenericRepository<Category>(context));
                 var result = await service.GetCategories();
-                Assert.AreEqual(categories.Count, (result.Value as List<Category>).Count);
+                Assert.AreEqual(categories.Count, ((result.Result as OkObjectResult).Value as List<Category>).Count);
             }
         }
 
@@ -57,7 +57,7 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new CategoryController(context);
+                var service = new CategoryController(new GenericRepository<Category>(context));
                 var result = await service.GetCategory(categories[0].Id);
                 Assert.AreEqual(categories[0].Id, (result.Value as Category).Id);
             }
@@ -78,7 +78,7 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new CategoryController(context);
+                var service = new CategoryController(new GenericRepository<Category>(context));
                 var result = await service.GetCategory(new Guid());
                 Assert.AreEqual(404, ((result as ActionResult<Category>).Result as StatusCodeResult).StatusCode);
             }
@@ -99,7 +99,7 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new CategoryController(context);
+                var service = new CategoryController(new GenericRepository<Category>(context));
                 var result = await service.PostCategory(newCategory);
 
                 Assert.IsNotNull(context.Categories.Find(newCategory.Id));
@@ -130,7 +130,7 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new CategoryController(context);
+                var service = new CategoryController(new GenericRepository<Category>(context));
                 var result = await service.PutCategory(new Guid(), categories[0]);
                 Assert.AreEqual(400, (result as BadRequestResult).StatusCode);
             }
@@ -158,7 +158,7 @@ namespace Blog.Api.Tests.Unit
                     Description = "updated description",
                 };
 
-                var service = new CategoryController(context);
+                var service = new CategoryController(new GenericRepository<Category>(context));
                 var result = await service.PutCategory(updatedCategory.Id, updatedCategory);
 
                 Assert.AreEqual(204, (result as StatusCodeResult).StatusCode);
@@ -181,7 +181,7 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new CategoryController(context);
+                var service = new CategoryController(new GenericRepository<Category>(context));
                 var result = await service.DeleteCategory(new Guid());
                 Assert.AreEqual(404, ((result as ActionResult<Category>).Result as StatusCodeResult).StatusCode);
             }
@@ -202,10 +202,9 @@ namespace Blog.Api.Tests.Unit
 
             using (var context = new Context(options))
             {
-                var service = new CategoryController(context);
+                var service = new CategoryController(new GenericRepository<Category>(context));
                 var result = await service.DeleteCategory(categories[0].Id);
                 Assert.AreEqual(1, await context.Categories.CountAsync());
-                Assert.AreEqual(categories[0].Id, (result as ActionResult<Category>).Value.Id);
             }
         }
     }
