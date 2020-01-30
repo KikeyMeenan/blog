@@ -89,7 +89,6 @@ namespace Blog.Api.Controllers
             }
             catch (NullReferenceException)
             {
-
                 return NotFound();
             }
 
